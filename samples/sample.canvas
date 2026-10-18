@@ -1,0 +1,72 @@
+{
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "text",
+      "text": "## Project Overview\nWelcome to the visual board for our project.",
+      "x": -200,
+      "y": 0,
+      "width": 300,
+      "height": 160
+    },
+    {
+      "id": "node-2",
+      "type": "file",
+      "file": "notes/intro.md",
+      "x": 200,
+      "y": -100,
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "node-3",
+      "type": "file",
+      "file": "notes/core_concepts.md",
+      "x": 200,
+      "y": 150,
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "node-4",
+      "type": "text",
+      "text": "## Summary & Next Actions\nEverything connects cleanly here.",
+      "x": 600,
+      "y": 20,
+      "width": 280,
+      "height": 140
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "node-1",
+      "fromSide": "right",
+      "toNode": "node-2",
+      "toSide": "left",
+      "label": "first read"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "node-1",
+      "fromSide": "right",
+      "toNode": "node-3",
+      "toSide": "left",
+      "label": "then dive into"
+    },
+    {
+      "id": "edge-3",
+      "fromNode": "node-2",
+      "fromSide": "right",
+      "toNode": "node-4",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-4",
+      "fromNode": "node-3",
+      "fromSide": "right",
+      "toNode": "node-4",
+      "toSide": "left"
+    }
+  ]
+}
