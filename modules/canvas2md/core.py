@@ -2,6 +2,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+import __main__
+
 
 @dataclass
 class CanvasNode:
@@ -109,7 +111,6 @@ def get_ordered_nodes(data: CanvasData) -> list[CanvasNode]:
             adj[edge.from_node].append(edge.to_node)
             in_degree[edge.to_node] += 1
 
-    
     # Find all the root nodes (in_degree == 0)
     # Helper to sort nodes visually: leftmost first (x), then top-most(y)
     def node_sort_key(node_id: str):
@@ -124,26 +125,72 @@ def get_ordered_nodes(data: CanvasData) -> list[CanvasNode]:
 
     # Process the Queue
     while available:
-            #Pick the best next event
-            current_id = available.pop(0)
-            ordered_nodes.append(data.nodes[current_id])
+        # Pick the best next event
+        current_id = available.pop(0)
+        ordered_nodes.append(data.nodes[current_id])
 
-            # Check all the events that flow out of this one
-            for neighbour_id in adj[current_id]:
-                in_degree[neighbour_id] -= 1
-                if in_degree[neighbour_id] == 0:
-                    available.append(neighbour_id)
-                    
-                    #Keep avaiable nodes sorted by position
-                    available.sort(key=node_sort_key)
+        # Check all the events that flow out of this one
+        for neighbour_id in adj[current_id]:
+            in_degree[neighbour_id] -= 1
+            if in_degree[neighbour_id] == 0:
+                available.append(neighbour_id)
 
-    
+                # Keep avaiable nodes sorted by position
+                available.sort(key=node_sort_key)
+
     # If any nodes were not visited, append them to the end
     if len(ordered_nodes) < len(data.nodes):
-        visited_ids= {node.id for node in ordered_nodes}
-        remaining_nodes = [data.nodes[nid] for nid in data.nodes if nid not in visited_ids]
+        visited_ids = {node.id for node in ordered_nodes}
+        remaining_nodes = [
+            data.nodes[nid] for nid in data.nodes if nid not in visited_ids
+        ]
         remaining_nodes.sort(key=lambda n: (n.x, n.y))
         ordered_nodes.extend(remaining_nodes)
 
     return ordered_nodes
-    
+
+
+def canvas_to_markdown(canvas_path: str | Path) -> str:
+    path = Path(canvas_path)
+    canvasDir = path.parent
+    data = parse_canvas(path)
+    ordered_notes = get_ordered_nodes(data)
+
+    sections: list[str] = []
+
+    for idx, node in enumerate(ordered_notes, start=1):
+        if node.node_type == "text" and node.text:
+            sections.append(node.text.strip())
+            print(f"[{idx}/{len(ordered_notes)}] Added text card: {node.id}")
+
+        elif node.node_type == "file" and node.file:
+            # Resolve file path relative to the canvaas directory
+            target_file = canvasDir / node.file
+            if target_file.exists():
+                content = target_file.read_text(encoding="utf-8")
+                sections.append(content.strip())
+                print(f"[{idx}/{len(ordered_notes)}] Read file note: {node.file}")
+            else:
+                warning = f"> [!WARNING] Missing linked note: `{node.file}`"
+                sections.append(warning)
+                print(
+                    f"[{idx}/{len(ordered_notes)}] Warning file not found ({node.file})"
+                )
+
+        elif node.node_type == "link" and node.url:
+            sections.append(f"<{node.url}>")
+            print(f"[{idx}/{len(ordered_notes)}] Added link: {node.url}")
+
+
+if __name__ == __main__:
+    import sys
+
+    target = sys.argv[1] if len(sys.argv) > 1 else "samples/samples.canvas"
+
+    print(f"\n --- Converting: {target} ----")
+    output_md = canvas_to_markdown(target)
+
+    output_path = Path("output.md")
+    output_path.write_text(output_md, encoding="utf-8")
+
+    print(f"\nSucess! Merged markdown written to: {output_path.resolve()}\n")
