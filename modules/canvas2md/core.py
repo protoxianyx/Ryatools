@@ -181,11 +181,13 @@ def canvas_to_markdown(canvas_path: str | Path) -> str:
             sections.append(f"<{node.url}>")
             print(f"[{idx}/{len(ordered_notes)}] Added link: {node.url}")
 
+        return "\n\n---\n\n".join(sections) + "\n"
 
-if __name__ == __main__:
+
+if __name__ == "__main__":
     import sys
 
-    target = sys.argv[1] if len(sys.argv) > 1 else "samples/samples.canvas"
+    target = sys.argv[1] if len(sys.argv) > 1 else "samples/sample.canvas"
 
     print(f"\n --- Converting: {target} ----")
     output_md = canvas_to_markdown(target)
